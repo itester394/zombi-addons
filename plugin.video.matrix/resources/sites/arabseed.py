@@ -20,7 +20,7 @@ SITE_IDENTIFIER = 'arabseed'
 SITE_NAME = 'Arabseed'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://asd.quest/
 
 oParser = cParser()
  

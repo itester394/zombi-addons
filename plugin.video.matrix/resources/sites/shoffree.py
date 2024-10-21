@@ -25,7 +25,7 @@ SITE_IDENTIFIER = 'shoffree'
 SITE_NAME = 'Shoffree'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://shoffree.net/
 
 oParser = cParser()
  

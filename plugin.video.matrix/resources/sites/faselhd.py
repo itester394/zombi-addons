@@ -21,7 +21,7 @@ SITE_NAME = 'Faselhd'
 SITE_DESC = 'arabic vod'
 
 UA = random_ua.get_phone_ua()
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://www.faselhds.care/
 
 MOVIE_EN = (URL_MAIN + '/movies', 'showMovies')
 MOVIE_HI = (URL_MAIN + '/hindi', 'showMovies')

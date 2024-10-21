@@ -16,7 +16,7 @@ SITE_IDENTIFIER = 'tvfun'
 SITE_NAME = 'Tvfun'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://olk.tvfhd.com/
 
 RAMADAN_SERIES = (URL_MAIN + '/ts/mosalsalat-ramadan-2024/', 'showSeries')
 SERIE_TR = (URL_MAIN + '/cat/mosalsalat-torkia/', 'showSeries')

@@ -16,7 +16,7 @@ SITE_IDENTIFIER = 'shooflive'
 SITE_NAME = 'Shooflive'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://shooflive-tv.blogspot.com/
 	
 RAMADAN_SERIES = (URL_MAIN + '/category/رمضان-2024/', 'showSeries')
 

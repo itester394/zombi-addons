@@ -24,7 +24,7 @@ SITE_DESC = 'arabic vod'
 
 UA = 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.48 Mobile Safari/537.36'
 
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://movtime94.homes/home5/
 
 oParser = cParser()
  

@@ -18,7 +18,7 @@ SITE_IDENTIFIER = 'fushaar'
 SITE_NAME = 'Fushaar'
 SITE_DESC = 'arabic vod'
 
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://www.fushaar.link/
 
 MOVIE_FAM = (URL_MAIN + 'gerne/family/', 'showMovies')
 MOVIE_EN = (URL_MAIN, 'showMovies')

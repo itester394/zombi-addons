@@ -21,8 +21,7 @@ SITE_IDENTIFIER = 'witanime'
 SITE_NAME = 'WitAnime'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
-
+URL_MAIN = https://witanime.cyou/
 ANIM_MOVIES = (URL_MAIN + '/anime-type/movie/', 'showMovies')
 ANIM_NEWS = (URL_MAIN+'/episode/' , 'showSeries')
 ANIM_LIST = (True, 'showAnimesList')

@@ -19,7 +19,7 @@ SITE_IDENTIFIER = 'animeup'
 SITE_NAME = 'Anime4up'
 SITE_DESC = 'arabic vod'
 
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://anime4up.rest/
 
 
 ANIM_NEWS = (URL_MAIN + '/anime-type/tv2/', 'showSeries')

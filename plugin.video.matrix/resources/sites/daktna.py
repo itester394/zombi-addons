@@ -18,7 +18,7 @@ SITE_IDENTIFIER = 'daktna'
 SITE_NAME = 'Daktna'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://v.daktna.cam/
 
 RAMADAN_SERIES = (URL_MAIN + '/list/series/', 'showSeries')
 SERIE_AR = (URL_MAIN + '/list/series/', 'showSeries')

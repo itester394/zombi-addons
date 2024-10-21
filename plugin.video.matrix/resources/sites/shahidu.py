@@ -20,7 +20,7 @@ SITE_IDENTIFIER = 'shahidu'
 SITE_NAME = 'Shahid4u'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://shaa4u.cam/
 
 RAMADAN_SERIES = (URL_MAIN + 'category/مسلسلات-رمضان-2024', 'showSeries')
 

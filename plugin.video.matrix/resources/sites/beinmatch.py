@@ -18,7 +18,7 @@ SITE_IDENTIFIER = 'beinmatch'
 SITE_NAME = 'Beinmatch'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://beinmatch.fit/
 
 SPORT_LIVE = (URL_MAIN, 'showMovies')
 

@@ -16,8 +16,8 @@ icons = ADDON.getSetting('defaultIcons')
 SITE_IDENTIFIER = 'esseq'
 SITE_NAME = 'Esseq'
 SITE_DESC = 'arabic vod'
+URL_MAIN = https://3isk.biz/
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
 
 oParser = cParser()
  

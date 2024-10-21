@@ -19,7 +19,7 @@ SITE_IDENTIFIER = 'arblionz'
 SITE_NAME = 'Arblionz'
 SITE_DESC = 'arabic vod'
 
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://arablionztv.com
 
 
 oParser = cParser()

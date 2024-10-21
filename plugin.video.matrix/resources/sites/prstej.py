@@ -18,7 +18,7 @@ SITE_IDENTIFIER = 'prstej'
 SITE_NAME = 'Prstej'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://ser.brstej.com/
 
 MOVIE_EN = (URL_MAIN + '/category102.php?cat=movies2023', 'showMovies')
 RAMADAN_SERIES = (URL_MAIN + '/category.php?cat=ramdan2024', 'showSeries')

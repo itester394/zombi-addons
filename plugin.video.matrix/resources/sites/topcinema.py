@@ -20,7 +20,7 @@ SITE_IDENTIFIER = 'topcinema'
 SITE_NAME = 'TopCinema'
 SITE_DESC = 'arabic vod'
  
-URL_MAIN = siteManager().getUrlMain(SITE_IDENTIFIER)
+URL_MAIN = https://web2.topcinema.cam/
 
 MOVIE_EN = (URL_MAIN + 'category/افلام-اجنبي/', 'showMovies')
 MOVIE_ASIAN = (URL_MAIN + 'category/افلام-اسيوي/', 'showMovies')
