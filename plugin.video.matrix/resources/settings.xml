@@ -20,6 +20,16 @@ c'est le changelog de la beta !        <setting label="30036" type="action" acti
         <setting id="Block_Noti_sound" type="bool" label="30411" default="false"/>
         <setting id="spinner_small" type="bool" label="30480" default="true"/>
     </category>
+	
+    <!-- Auto-play and Source Settings -->
+    <category label="Auto-play and Source Settings">
+        <setting id="autoplay_enabled" type="bool" label="Enable Auto-play" default="false"/>
+        <setting id="preferred_quality" type="enum" label="Preferred Quality" values="1080p|720p|480p" default="1080p"/>
+        <setting id="min_quality" type="enum" label="Minimum Quality" values="Any|480p|720p|1080p" default="720p"/>
+        <setting id="retry_attempts" type="number" label="Max Retry Attempts" default="3"/>
+        <setting id="validate_links" type="bool" label="Validate Links Before Playback" default="true"/>
+        <setting id="host_selection" type="enum" label="Host Auto-Selection Method" values="Fastest|Reliable|Random" default="Reliable"/>
+    </category>
 
     <!-- Affichage -->
     <category label="31205">
