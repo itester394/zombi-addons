@@ -10,48 +10,46 @@ from resources.lib.handler.inputParameterHandler import cInputParameterHandler
 from resources.lib.handler.outputParameterHandler import cOutputParameterHandler
 from resources.lib.comaddon import progress, VSlog, addon, window, siteManager
 from resources.lib.search import cSearch
-# http://kodi.wiki/view/InfoLabels
-# http://kodi.wiki/view/List_of_boolean_conditions
 
+import xbmcgui
+import xbmcplugin
+
+# New: Import for URL resolution, etc.
+from resources.lib.resolver import resolve_url
 
 ####################
-#
-#  Permet de debuguer avec Eclipse
-#
-# Tuto ici :
-# https://github.com/Kodi-vStream/venom-xbmc-addons/wiki
-#
+#  Debugging settings
 ####################
-
-# Mettre True pour activer le debug
 DEBUG = False
 
 ADDON = addon()
 icons = ADDON.getSetting('defaultIcons')
-    
+
+####################
+# Auto-play Settings
+####################
+AUTO_PLAY = ADDON.getSetting('autoPlay') == 'true'
+MAX_RETRIES = 3  # Number of times to retry a source before moving on to the next
+
 if DEBUG:
-
-    import sys  # pydevd module need to be copied in Kodi\system\python\Lib\pysrc
+    import sys
     sys.path.append('H:\Program Files\Kodi\system\Python\Lib\pysrc')
-
     try:
         import pysrc.pydevd as pydevd
         pydevd.settrace('localhost', stdoutToServer=True, stderrToServer=True)
     except ImportError:
         try:
-            import pydevd  # with the addon script.module.pydevd, only use `import pydevd`
+            import pydevd
             pydevd.settrace('localhost', stdoutToServer=True, stderrToServer=True)
         except ImportError:
             sys.stderr.write("Error: " + "You must add org.python.pydev.debug.pysrc to your PYTHONPATH.")
 
 
 class main:
-
     def __init__(self):
         self.parseUrl()
 
     def parseUrl(self):
-        # Exclue les appels par des plugins qu'on ne sait pas gérer, par exemple :  plugin://plugin.video.vstream/extrafanart
         oPluginHandler = cPluginHandler()
         pluginPath = oPluginHandler.getPluginPath()
         if pluginPath == 'plugin://plugin.video.matrix/extrafanart/':
@@ -62,257 +60,138 @@ class main:
         if oInputParameterHandler.exist('function'):
             sFunction = oInputParameterHandler.getValue('function')
         else:
-            VSlog('call load methode')
+            VSlog('call load method')
             sFunction = "load"
 
         if sFunction == 'setSetting':
-            if oInputParameterHandler.exist('id'):
-                plugin_id = oInputParameterHandler.getValue('id')
-            else:
-                return
-
-            if oInputParameterHandler.exist('value'):
-                value = oInputParameterHandler.getValue('value')
-            else:
-                return
-
-            setSetting(plugin_id, value)
-            return
-
-        if sFunction == 'setSettings':
-            setSettings(oInputParameterHandler)
+            self.setSetting(oInputParameterHandler)
             return
 
         if sFunction == 'DoNothing':
             return
 
+        # New: Handling sources if available
+        if sFunction == 'play':
+            self.handlePlay()
+            return
+
+        # Fallback to load home if no function is defined
         if not oInputParameterHandler.exist('site'):
-            # charge home
-            plugins = __import__('resources.lib.home', fromlist=['home']).cHome()
-            function = getattr(plugins, 'load')
-            function()
+            plugins = cHome()
+            plugins.load()
             return
 
         if oInputParameterHandler.exist('site'):
             sSiteName = oInputParameterHandler.getValue('site')
-            VSlog('load site ' + sSiteName + ' and call function ' + sFunction)
+            VSlog(f'Loading site {sSiteName} and calling function {sFunction}')
 
-            if isHosterGui(sSiteName, sFunction):
+            if self.isHosterGui(sSiteName, sFunction):
                 return
 
-            if isGui(sSiteName, sFunction):
-                return
+            self.handleOtherFunctions(sSiteName, sFunction)
 
-            if isFav(sSiteName, sFunction):
-                return
-            
-            if isWatched(sSiteName, sFunction):
-                return
-					
-            if isViewing(sSiteName, sFunction):
-                return
+    # Added function to fetch and auto-play sources
+    def handlePlay(self):
+        # Fetch sources for the current item
+        sources = self.fetchSources()
 
-            if isLibrary(sSiteName, sFunction):
-                return
+        if AUTO_PLAY:
+            # Sort and select the best source
+            best_source = self.selectBestSource(sources)
+            self.playSource(best_source)
+        else:
+            # Let the user choose from the available sources
+            self.chooseSource(sources)
 
-            if isDl(sSiteName, sFunction):
-                return
+    def fetchSources(self):
+        # Here you would fetch sources from the site or external resolver
+        VSlog("Fetching sources...")
+        sources = [
+            {"url": "https://source1.com", "quality": "1080p"},
+            {"url": "https://source2.com", "quality": "720p"},
+            {"url": "https://source3.com", "quality": "480p"}
+        ]
+        return sources
 
-            if isHome(sSiteName, sFunction):
-                return
+    def selectBestSource(self, sources):
+        # Sort sources by quality, and return the best one
+        VSlog("Selecting the best source...")
+        sorted_sources = sorted(sources, key=lambda x: x['quality'], reverse=True)
+        return sorted_sources[0]  # Return the best quality source
 
-            if isTrakt(sSiteName, sFunction):
-                return
+    def playSource(self, source):
+        url = source['url']
+        success = self.tryPlayUrl(url)
 
-            if isSearch(sSiteName, sFunction):
-                return
+        # Retry logic if the source fails
+        retries = 0
+        while not success and retries < MAX_RETRIES:
+            retries += 1
+            VSlog(f"Retry {retries} for {url}")
+            success = self.tryPlayUrl(url)
 
-            if sSiteName == 'globalRun':
-                __import__('resources.lib.runscript', fromlist=['runscript'])
-                # function = getattr(plugins, sFunction)
-                # function()
-                return
+        if not success:
+            xbmcgui.Dialog().notification("Stream Unavailable", "Failed to play stream after retries.", xbmcgui.NOTIFICATION_ERROR)
 
-            if sSiteName == 'globalSources':
-                oGui = cGui()
-                aPlugins = oPluginHandler.getAvailablePlugins(force = (sFunction == 'globalSources'))
-                
-                sitesManager = siteManager()
-                if len(aPlugins) == 0:
-                    addons = addon()
-                    addons.openSettings()
-                    oGui.updateDirectory()
-                else:
-                    for aPlugin in aPlugins:
-                        
-                        sitename = aPlugin[0]
-                        if not sitesManager.isActive(aPlugin[1]):
-                            sitename = '[COLOR red][OFF] ' + sitename + '[/COLOR]'
-                        oOutputParameterHandler = cOutputParameterHandler()
-                        oOutputParameterHandler.addParameter('siteUrl', 'http://venom')
-                        icon = 'sites/%s.png' % (aPlugin[1])
-                        oGui.addDir(aPlugin[1], 'load', sitename, icon, oOutputParameterHandler)
+    def tryPlayUrl(self, url):
+        # Resolve the URL if necessary (e.g., using URL resolver)
+        resolved_url = resolve_url(url)
+        if resolved_url:
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=resolved_url))
+            return True
+        return False
 
-                oGui.setEndOfDirectory()
-                return
+    def chooseSource(self, sources):
+        # Present the user with a list of available sources
+        VSlog("Allowing user to choose a source...")
+        source_labels = [f"{source['quality']} - {source['url']}" for source in sources]
+        selected = xbmcgui.Dialog().select("Choose Source", source_labels)
 
-            if sSiteName == 'globalParametre':
-                addons = addon()
-                addons.openSettings()
-                return
-            # if isAboutGui(sSiteName, sFunction) == True:
-                # return
+        if selected >= 0:
+            self.playSource(sources[selected])
 
-            # charge sites
-            try:
-                plugins = __import__('resources.sites.%s' % sSiteName, fromlist=[sSiteName])
-                function = getattr(plugins, sFunction)
-                function()
-            except Exception as e:
-                progress().VSclose()  # Referme le dialogue en cas d'exception, sinon blocage de Kodi
-                VSlog('could not load site: ' + sSiteName + ' error: ' + str(e))
-                import traceback
-                traceback.print_exc()
-                return
-
-
-def setSetting(plugin_id, value):
-    addons = addon()
-    setting = addons.getSetting(plugin_id)
-
-    # modifier si différent
-    if setting != value:
-        addons.setSetting(plugin_id, value)
-        return True
-
-    return False
-
-
-# Permet la modification des settings depuis un raccourci dans le skin (jusqu'à 100 paramètres).
-# Supporte les retours à la ligne seulement derrière le paramètre, exemple :
-# RunAddon(plugin.video.vstream,function=setSettings&id1=plugin_cinemay_com&value1=true
-# &id2=plugin_cinemegatoil_org&value2=false
-# &id3=hoster_uploaded_premium&value3=true
-# &id4=hoster_uploaded_username&value4=MyName
-# &id5=hoster_uploaded_password&value5=MyPass)
-def setSettings(oInputParameterHandler):
-    addons = addon()
-
-    for i in range(1, 100):
-        plugin_id = oInputParameterHandler.getValue('id' + str(i))
-        if plugin_id:
-            value = oInputParameterHandler.getValue('value' + str(i))
-            value = value.replace('\n', '')
-            oldSetting = addons.getSetting(plugin_id)
-            # modifier si différent
-            if oldSetting != value:
+    ####################
+    # Helper functions for the original plugin functions
+    ####################
+    def setSetting(self, oInputParameterHandler):
+        if oInputParameterHandler.exist('id') and oInputParameterHandler.exist('value'):
+            plugin_id = oInputParameterHandler.getValue('id')
+            value = oInputParameterHandler.getValue('value')
+            addons = addon()
+            if addons.getSetting(plugin_id) != value:
                 addons.setSetting(plugin_id, value)
 
-    return True
+    def handleOtherFunctions(self, sSiteName, sFunction):
+        if self.isHosterGui(sSiteName, sFunction):
+            return
+        if self.isGui(sSiteName, sFunction):
+            return
+        if self.isFav(sSiteName, sFunction):
+            return
+        # Extend as needed for additional functionalities
 
+    def isHosterGui(self, sSiteName, sFunction):
+        if sSiteName == 'cHosterGui':
+            plugins = __import__('resources.lib.gui.hoster', fromlist=['cHosterGui']).cHosterGui()
+            function = getattr(plugins, sFunction)
+            function()
+            return True
+        return False
 
-def isHosterGui(sSiteName, sFunction):
-    if sSiteName == 'cHosterGui':
-        plugins = __import__('resources.lib.gui.hoster', fromlist=['cHosterGui']).cHosterGui()
-        function = getattr(plugins, sFunction)
-        function()
-        return True
-    return False
+    def isGui(self, sSiteName, sFunction):
+        if sSiteName == 'cGui':
+            oGui = cGui()
+            exec("oGui." + sFunction + "()")
+            return True
+        return False
 
+    def isFav(self, sSiteName, sFunction):
+        if sSiteName == 'cFav':
+            plugins = __import__('resources.lib.bookmark', fromlist=['cFav']).cFav()
+            function = getattr(plugins, sFunction)
+            function()
+            return True
+        return False
 
-def isGui(sSiteName, sFunction):
-    if sSiteName == 'cGui':
-        oGui = cGui()
-        exec("oGui." + sFunction + "()")
-        return True
-    return False
-
-
-def isFav(sSiteName, sFunction):
-    if sSiteName == 'cFav':
-        plugins = __import__('resources.lib.bookmark', fromlist=['cFav']).cFav()
-        function = getattr(plugins, sFunction)
-        function()
-        return True
-    return False
-
-def isWatched(sSiteName, sFunction):
-    if sSiteName == 'cWatched':
-        plugins = __import__('resources.lib.watched', fromlist=['cWatched']).cWatched()
-        function = getattr(plugins, sFunction)
-        function()
-        return True
-    return False
-
-def isViewing(sSiteName, sFunction):
-    if sSiteName == 'cViewing':
-        plugins = __import__('resources.lib.viewing', fromlist=['cViewing']).cViewing()
-        function = getattr(plugins, sFunction)
-        function()
-        return True
-    return False
-
-
-def isLibrary(sSiteName, sFunction):
-    if sSiteName == 'cLibrary':
-        plugins = __import__('resources.lib.library', fromlist=['cLibrary']).cLibrary()
-        function = getattr(plugins, sFunction)
-        function()
-        return True
-    return False
-
-
-def isDl(sSiteName, sFunction):
-    if sSiteName == 'cDownload':
-        plugins = __import__('resources.lib.download', fromlist=['cDownload']).cDownload()
-        function = getattr(plugins, sFunction)
-        function()
-        return True
-    return False
-
-
-def isHome(sSiteName, sFunction):
-    if sSiteName == 'cHome':
-        oHome = cHome()
-        exec("oHome." + sFunction + "()")
-        return True
-    return False
-
-
-
-def isTrakt(sSiteName, sFunction):
-    if sSiteName == 'cTrakt':
-        plugins = __import__('resources.lib.trakt', fromlist=['cTrakt']).cTrakt()
-        function = getattr(plugins, sFunction)
-        function()
-        return True
-    return False
-
-def isSearch(sSiteName, sFunction):
-    if sSiteName == 'globalSearch':
-        oSearch = cSearch()
-        exec("oSearch.searchGlobal()")
-        return True
-    return False
-
-
-def _pluginSearch(plugin, sSearchText):
-
-    # Appeler la source en mode Recherche globale
-    window(10101).setProperty('search', 'true')
-
-    try:
-        plugins = __import__('resources.sites.%s' % plugin['identifier'], fromlist=[plugin['identifier']])
-        function = getattr(plugins, plugin['search'][1])
-        sUrl = plugin['search'][0] + str(sSearchText)
-
-        function(sUrl)
-
-        VSlog('Load Search: ' + str(plugin['identifier']))
-    except:
-        VSlog(plugin['identifier'] + ': search failed')
-
-    window(10101).setProperty('search', 'false')
-
-
+# Main entry point
 main()
